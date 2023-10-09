@@ -1,17 +1,16 @@
 from typing import Set, List
-
+# from google.colab.patches import cv2_imshow
 import os
 import random
 import shutil
-import argparse
 
 import torch
 import numpy as np
-
+import argparse
 from utils.kp_diff import flip_check
 from models.Alignment import Alignment
 from models.Embedding import Embedding
-
+success_transform_flag=False
 
 def set_seed(seed: int) -> None:
     torch.manual_seed(seed)
@@ -23,7 +22,7 @@ def set_seed(seed: int) -> None:
     random.seed(seed)
 
 
-def get_im_paths_not_embedded(im_paths: Set[str]) -> List[str]:
+def get_im_paths_not_embedded(args,im_paths: Set[str]) -> List[str]:
     W_embedding_dir = os.path.join(args.embedding_dir, "W+")
     FS_embedding_dir = os.path.join(args.embedding_dir, "FS")
 
@@ -41,9 +40,9 @@ def get_im_paths_not_embedded(im_paths: Set[str]) -> List[str]:
     return im_paths_not_embedded
 
 
-def main(args):
+def transfer(args):
 
-    set_seed(42)
+    set_seed(args.seed)
 
     ii2s = Embedding(args)
 
@@ -53,7 +52,7 @@ def main(args):
         im_path2 = flip_check(im_path1, im_path2, args.device)
 
     # Step 1 : Embedding source and target images into W+, FS space
-    im_paths_not_embedded = get_im_paths_not_embedded({im_path1, im_path2})
+    im_paths_not_embedded = get_im_paths_not_embedded(args,{im_path1, im_path2})
     if im_paths_not_embedded:
         args.embedding_dir = args.output_dir
         ii2s.invert_images_in_W(im_paths_not_embedded)
@@ -71,6 +70,42 @@ def main(args):
     align = Alignment(args)
     align.align_images(im_path1, im_path2, sign=args.sign, align_more_region=False, smooth=args.smooth)
 
+def main(args):
+
+    global success_transform_flag
+    success_transform_flag=False
+    set_seed(args.seed)
+    ii2s = Embedding(args)
+    Folder_paths_hair_resource=os.path.join(os.getcwd(),args.input_dir,'hair_resource')
+    # Get a list of all files in the directory
+    imgs_hair_resource = [os.path.join(Folder_paths_hair_resource, filename) for filename in os.listdir(Folder_paths_hair_resource) if os.path.isfile(os.path.join(Folder_paths_hair_resource, filename))]
+    im_path1 = os.path.join(args.input_dir,'customer_pic', args.im_path1)
+    # always embedding
+    # Step 1 : Embedding source and target images into W+, FS space
+    im_paths_not_embedded = get_im_paths_not_embedded(args,{*imgs_hair_resource})
+    im_paths_not_embedded.append(im_path1)
+    if im_paths_not_embedded:
+        args.embedding_dir = args.output_dir
+        ii2s.invert_images_in_W(im_paths_not_embedded)
+        ii2s.invert_images_in_FS(im_paths_not_embedded)
+    for img in imgs_hair_resource:
+        im_path2 = img
+        # if args.flip_check:
+        #     im_path2 = flip_check(im_path1, im_path2, args.device)
+        if args.save_all:
+            im_name_1 = os.path.splitext(os.path.basename(im_path1))[0]
+            im_name_2 = os.path.splitext(os.path.basename(im_path2))[0]
+            args.save_dir = os.path.join(args.output_dir, f'{im_name_1}_{im_name_2}_{args.version}')
+            os.makedirs(args.save_dir, exist_ok = True)
+            shutil.copy(im_path1, os.path.join(args.save_dir, im_name_1 + '.png'))
+            shutil.copy(im_path2, os.path.join(args.save_dir, im_name_2 + '.png'))
+
+        # Step 2 : Hairstyle transfer using the above embedded vector or tensor
+        align = Alignment(args)
+        align.align_images(im_path1, im_path2, sign=args.sign, align_more_region=False, smooth=args.smooth)
+        success_transform_flag=True
+        print(f"succesfull pic{im_name_2}")
+    print(" tranformation succesfull")
 
 
 if __name__ == "__main__":
@@ -126,8 +161,8 @@ if __name__ == "__main__":
     parser.add_argument('--n_mlp', type=int, default=8)
 
     # Arguments
-    parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--seed', type=int, default=None)
+    parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--tile_latent', action='store_true', help='Whether to forcibly tile the same latent N times')
     parser.add_argument('--opt_name', type=str, default='adam', help='Optimizer to use in projected gradient descent')
     parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate to use during optimization')

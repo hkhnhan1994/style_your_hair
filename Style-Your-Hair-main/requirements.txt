@@ -1,0 +1,8 @@
+torchvision
+face_alignment
+face-recognition
+gdown 
+ipython 
+matplotlib
+Ninja
+numpy==1.23.1
