@@ -6,3 +6,7 @@ ipython
 matplotlib
 Ninja
 numpy==1.23.1
+pyngrok==4.1.1
+flask_ngrok
+flask_cors
+imutils

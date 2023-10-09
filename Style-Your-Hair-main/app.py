@@ -1,18 +1,18 @@
 import os
-from google.colab import files
+# from google.colab import files
 import argparse
 import main
 from flask import Flask,jsonify, send_from_directory,request
-from flask_ngrok import run_with_ngrok
+# from flask_ngrok import run_with_ngrok
 from flask_cors import CORS, cross_origin
-from urllib.parse import quote
+# from urllib.parse import quote
 import cv2, imutils
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 app = Flask(__name__)
 CORS(app, resources={r'/*': {"origins": '*'}})
 # app.config['CORS_HEADER'] = 'Content-Type'
 # app.config['CORS_HEADERS'] = 'Content-Type'
-run_with_ngrok(app)  
+# run_with_ngrok(app)  
 root=os.getcwd()
 
 @app.route("/")
