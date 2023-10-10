@@ -99,7 +99,7 @@ def upload_image():
     os.rename(image.filename, new_name)
     print(f"rename {new_path}")
     center_and_resize_portrait_image(new_name,os.path.join(root,'ffhq_image/customer_pic/output/croppted_customer.png'))
-    response=jsonify({'colabPath': new_path})
+    response=jsonify({'path': new_path,  "status": 200},)
     # response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 def center_and_resize_portrait_image(image_path,output_path):
