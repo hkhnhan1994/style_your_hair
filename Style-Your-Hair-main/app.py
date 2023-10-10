@@ -16,15 +16,12 @@ CORS(app, resources={r'/*': {"origins": '*'}})
 root=os.getcwd()
 
 @app.route("/")
-@cross_origin(origin='*', headers=['Content-Type', 'Authorization'])
 def home():
     return "<h1>GFG is great platform to learn</h1>"
 @app.route('/styling')
-@cross_origin(origin='*', headers=['Content-Type', 'Authorization'])
 def styling():
   main.transfom(args)
 @app.route('/status')
-@cross_origin(origin='*', headers=['Content-Type', 'Authorization'])
 def status():
   if main.success_transform_flag:
     return jsonify({'success': 'Done'}), 200
@@ -32,7 +29,6 @@ def status():
     return  jsonify({'unknown': 'unknown'}), 400
 
 @app.route('/list_images/<folder_images>')
-@cross_origin(origin='*', headers=['Content-Type', 'Authorization'])
 # /list_images/
 def list_images(folder_images):
     try:
@@ -67,7 +63,6 @@ def list_images(folder_images):
 
 # Define a route to serve individual images by filename
 @app.route('/get_image/<folder_path>/<filename>')
-@cross_origin(origin='*', headers=['Content-Type', 'Authorization'])
 # example: /get_image/ffhq_image/customer_pic/customer.png
 def get_image(folder_path, filename):
     try:
@@ -85,7 +80,6 @@ def get_image(folder_path, filename):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/upload', methods=['POST'])
-@cross_origin(origin='*', headers=['Content-Type', 'Authorization'])
 def upload_image():
     for r in request.files:
       print(r)
@@ -100,12 +94,12 @@ def upload_image():
     # Move the image to the Colab directory
     colab_directory = os.path.join(root,'ffhq_image/customer_pic/temp')
     new_name=os.path.join(colab_directory,'customer.png')
-    # new_path = os.path.join(colab_directory, image.filename)
+    new_path = os.path.join(colab_directory, image.filename)
     print(f"new_path {new_name}")
     os.rename(image.filename, new_name)
-    # print(f"rename {new_path}")
-    # center_and_resize_portrait_image(new_name,os.path.join(root,'ffhq_image/customer_pic/output/croppted_customer.png'))
-    response=jsonify({'colabPath': new_name})
+    print(f"rename {new_path}")
+    center_and_resize_portrait_image(new_name,os.path.join(root,'ffhq_image/customer_pic/output/croppted_customer.png'))
+    response=jsonify({'colabPath': new_path})
     # response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 def center_and_resize_portrait_image(image_path,output_path):
@@ -151,6 +145,7 @@ def center_and_resize_portrait_image(image_path,output_path):
     # Resize the cropped image to 512x512 without stretching
     # resized_image = cv2.resize(cropped_image, (512, 512), interpolation=cv2.INTER_AREA)
     print(f"saved at:{output_path} ")
+    print(f"image shape:{image.shape[1]},{image.shape[0]} ")
     return cropped_image
 
 if __name__ == "__main__":
@@ -240,4 +235,4 @@ if __name__ == "__main__":
 
     
     args = parser.parse_args()
-    app.run()
+    app.run( port=5001)

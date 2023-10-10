@@ -213,7 +213,7 @@ class Embedding(nn.Module):
         self.setup_dataloader(image_path=image_path)
         device = self.opts.device
         ibar = tqdm(self.dataloader, desc='Images')
-
+        
         for ref_im_H, ref_im_L, ref_name in ibar:
             print(ref_name[0]) # todo : erease
             optimizer_W, latent = self.setup_W_optimizer()
@@ -315,8 +315,6 @@ class Embedding(nn.Module):
                         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
 
             self.save_FS_results(ref_name, gen_im, latent_in, latent_F)
-
-
 
 
     def cal_loss(self, im_dict, latent_in, latent_F=None, F_init=None):
